@@ -41,6 +41,7 @@ import com.google.codelabs.findnearbyplacesar.api.PlacesService
 import com.google.codelabs.findnearbyplacesar.ar.PlaceNode
 import com.google.codelabs.findnearbyplacesar.ar.PlacesArFragment
 import com.google.codelabs.findnearbyplacesar.model.Place
+import com.google.codelabs.findnearbyplacesar.model.getPositionVector
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -114,6 +115,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private fun setUpAr() {
         arFragment.setOnTapArPlaneListener { hitResult, _, _ ->
             // TODO Create anchor here
+            val anchor = hitResult.createAnchor()
+            anchorNode = AnchorNode(anchor)
+            anchorNode?.setParent(arFragment.arSceneView.scene)
             addPlaces(anchorNode!!)
         }
     }
@@ -135,7 +139,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             // Add the place in AR
             val placeNode = PlaceNode(this, place)
             placeNode.setParent(anchorNode)
-            // TODO set localPosition
+            placeNode.localPosition = place.getPositionVector(orientationAngles[0], currentLocation.latLng)
             placeNode.setOnTapListener { _, _ ->
                 showInfoWindow(place)
             }
@@ -174,7 +178,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private fun setUpMaps() {
         mapFragment.getMapAsync { googleMap ->
-            // TODO set isMyLocationEnabled to true
+
+            googleMap.isMyLocationEnabled = true
 
             getCurrentLocation {
                 val pos = CameraPosition.fromLatLngZoom(it.latLng, 13f)
@@ -195,11 +200,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private fun getCurrentLocation(onSuccess: (Location) -> Unit) {
         // TODO get current location
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            currentLocation = location
+            onSuccess(location)
+        }.addOnFailureListener {
+            Log.e(TAG, "Could not get location")
+        }
     }
 
     private fun getNearbyPlaces(location: Location) {
         // TODO fill in API key
-        val apiKey = "API Key goes here"
+        val apiKey = this.getString(R.string.google_maps_key)
         placesService.nearbyPlaces(
             apiKey = apiKey,
             location = "${location.latitude},${location.longitude}",
@@ -245,6 +256,23 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent?) {
         // TODO read sensor data
+        if (event == null) {
+            return
+        }
+        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+            System.arraycopy(event.values, 0, accelerometerReading, 0, accelerometerReading.size)
+        } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+            System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.size)
+        }
+
+        // Update rotation matrix, which is needed to update orientation angles.
+        SensorManager.getRotationMatrix(
+            rotationMatrix,
+            null,
+            accelerometerReading,
+            magnetometerReading
+        )
+        SensorManager.getOrientation(rotationMatrix, orientationAngles)
     }
 }
 

@@ -3,13 +3,13 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
+    compileSdkVersion 33
+    buildToolsVersion "30.0.2"
 
     defaultConfig {
         applicationId "com.google.codelabs.findlocalplacesinar"
         minSdkVersion 24
-        targetSdkVersion 29
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -41,6 +41,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.core:core-ktx:1.2.0'
 
+    implementation 'com.google.ar:core:1.33.0'
+
     // Testing
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
@@ -52,7 +54,7 @@ dependencies {
     // Retrofit
     implementation "com.squareup.retrofit2:retrofit:2.7.1"
     implementation "com.squareup.retrofit2:converter-gson:2.7.1"
-    implementation "com.squareup.okhttp3:logging-interceptor:4.0.0"
+    implementation "com.squareup.okhttp3:logging-interceptor:4.9.0"
 
     // Maps & Location
     implementation 'com.google.android.gms:play-services-location:17.0.0'
